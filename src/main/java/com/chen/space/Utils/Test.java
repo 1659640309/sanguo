@@ -26,6 +26,7 @@ import java.util.Locale;
 public class Test {
 
 
+    //登录token
     private final static String TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTgzNTkzNDAsInVzZXJuYW1lIjoieWdieXlkcyJ9.9Z-y85M6TQYBZaoysWvY3nOHD4fJenhNfzOO0JZtq50";
 
     /**
@@ -39,15 +40,21 @@ public class Test {
      */
     public String encrypt(String content, String encodingFormat, String sKey, String ivParameter) {
         try {
+            //密钥 -> 字节
             byte[] raw = sKey.getBytes();
+            //加密方式
             SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+            //加密的 类型\模式\填充
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            //偏移量
             IvParameterSpec iv = new IvParameterSpec(ivParameter.getBytes());
+            //初始化
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
             while (content.getBytes(encodingFormat).length % 16 != 0){
                 content+=" ";
             }
             byte[] encrypted = cipher.doFinal(content.getBytes(encodingFormat));
+            //转换成16进制吧（好像）
             return Hex.encodeHexString(encrypted).toUpperCase(Locale.ROOT);
         }catch (Exception e){
             System.out.println("encrypt错误");
@@ -58,34 +65,43 @@ public class Test {
     /**
      *解密操作
      * @param content 待解密内容
-     * @param encodingFormat 编码方式
-     * @param sKey 密码
+     * @param encodingFormat 字符编码
+     * @param sKey 密钥
      * @param ivParameter 偏移量
      * @return
      * @throws Exception
      */
-    public String decrypt(String content, String encodingFormat, String sKey, String ivParameter) throws UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException, DecoderException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
-
-            byte[] raw = sKey.getBytes("ASCII");
-            SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            IvParameterSpec iv = new IvParameterSpec(ivParameter.getBytes());
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
-            byte[] bytes = Hex.decodeHex(content);
-            byte[] original = cipher.doFinal(bytes);
-            String originalString = new String(original, encodingFormat);
-            return originalString;
+    public String decrypt(String content, String encodingFormat, String sKey, String ivParameter)
+            throws Exception{
+        //密钥字节
+        byte[] raw = sKey.getBytes("ASCII");
+        //加密方式
+        SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+        //加密的 类型\模式\填充
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        //偏移量
+        IvParameterSpec iv = new IvParameterSpec(ivParameter.getBytes());
+        //初始化
+        cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+        //解码
+        byte[] bytes = Hex.decodeHex(content);
+        byte[] original = cipher.doFinal(bytes);
+        //设置字符编码
+        String originalString = new String(original, encodingFormat);
+        return originalString;
     }
 
+    //取token前16位
     public String getSkey(){
         return TOKEN.substring(0,16);
     }
 
+    //取token前16位
     public String getIv(){
         return TOKEN.substring(0,16);
     }
 
-    public static void main(String[] args) throws DecoderException, InvalidAlgorithmParameterException, UnsupportedEncodingException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+    public static void main(String[] args) throws Exception {
 
         Test test = new Test();
 
